@@ -60,13 +60,13 @@ LOCAL = $(TESTS) $(CWARNS)
 
 
 # enable Linux goodies
-MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX -DLUA_USE_READLINE
-MYLDFLAGS= $(LOCAL) -Wl,-E
-MYLIBS= -ldl -lreadline
+MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX -march=rv64imafdcxcheri -mabi=l64pc128d --sysroot=$(HOME)/cheri/output/rootfs-riscv64-purecap -mno-relax -g
+MYLDFLAGS= $(LOCAL) -Wl,-E --sysroot=$(HOME)/cheri/output/rootfs-riscv64-purecap -mabi=l64pc128d
+MYLIBS= -ldl
 
 
-CC= gcc
-CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common -march=native
+CC=$(HOME)/cheri/output/sdk/bin/riscv64-unknown-freebsd13-clang
+CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common
 AR= ar rc
 RANLIB= ranlib
 RM= rm -f
