@@ -3,6 +3,7 @@
 *.so
 *.o
 *.a
+*.bc
 
 manual/manual.html
 

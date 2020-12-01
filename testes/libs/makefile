@@ -2,10 +2,13 @@
 # of the version being tested
 LUA_DIR = ../../
 
-CC = gcc
+MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX 
+
+
+CC=$(HOME)/cheri/output/sdk/bin/riscv64-unknown-freebsd13-clang
 
 # compilation should generate Dynamic-Link Libraries
-CFLAGS = -Wall -std=gnu99 -O2 -I$(LUA_DIR) -fPIC -shared
+CFLAGS = -Wall -std=gnu99 -O2 -I$(LUA_DIR) -fPIC -shared -march=rv64imafdcxcheri -mabi=l64pc128d --sysroot=$(HOME)/cheri/output/rootfs-riscv64-hybrid -mno-relax -g
 
 # libraries used by the tests
 all: lib1.so lib11.so lib2.so lib21.so lib2-v2.so

@@ -66,6 +66,7 @@ MYLIBS= -ldl
 
 
 CC=$(HOME)/cheri/output/sdk/bin/riscv64-unknown-freebsd13-clang
+LINK=$(HOME)/cheri/output/sdk/bin/llvm-link
 CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common
 AR= ar rc
 RANLIB= ranlib
@@ -78,7 +79,7 @@ RM= rm -f
 
 LIBS = -lm
 
-CORE_T=	liblua.so
+CORE_T=	lua.bc
 CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o \
 	lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o \
 	ltm.o lundump.o lvm.o lzio.o ltests.o
@@ -86,9 +87,9 @@ AUX_O=	lauxlib.o
 LIB_O=	lbaselib.o ldblib.o liolib.o lmathlib.o loslib.o ltablib.o lstrlib.o \
 	lutf8lib.o loadlib.o lcorolib.o linit.o
 
-LUA_T=	lua
-LUA_O = lua.o
-LUA_SO =	liblzio.so liblapi.so liblauxlib.so liblbaselib.so liblcode.so liblcorolib.so liblctype.so libldblib.so libldebug.so libldump.so liblfunc.so liblgc.so liblinit.so libliolib.so libllex.so liblmathlib.so liblmem.so libloadlib.so liblobject.so liblopcodes.so libloslib.so liblparser.so liblstate.so liblstring.so liblstrlib.so libltable.so libltablib.so libltests.so libltm.so liblundump.so liblutf8lib.so liblinterp.so
+LUA_T= lua
+LUA_O = lua.bc
+LUA_BC = lzio.bc lapi.bc lauxlib.bc lbaselib.bc lcode.bc lcorolib.bc lctype.bc ldblib.bc ldebug.bc ldump.bc lfunc.bc lgc.bc linit.bc liolib.bc llex.bc lmathlib.bc lmem.bc loadlib.bc lobject.bc lopcodes.bc loslib.bc lparser.bc lstate.bc lstring.bc lstrlib.bc ltable.bc ltablib.bc ltests.bc ltm.bc lundump.bc lutf8lib.bc lvm.bc ldo.bc
 
 
 ALL_T= $(CORE_T) $(LUA_T)
@@ -102,12 +103,9 @@ o:	$(ALL_O)
 
 a:	$(ALL_A)
 
-$(CORE_T): $(CORE_O) $(AUX_O) $(LIB_O)
-	
-	$(RANLIB) $@
-
-$(LUA_T): $(LUA_O) $(LUA_SO)
-	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O) -Wl,-rpath,/root/lua -L. -llzio -llapi -llauxlib -llbaselib -llcode -llcorolib -llctype -lldblib -lldebug -lldump -llfunc -llgc -llinit -lliolib -lllex -llmathlib -llmem -lloadlib -llobject -llopcodes -lloslib -llparser -llstate -llstring -llstrlib -lltable -lltablib -lltests -lltm -llundump -llutf8lib -llinterp $(LIBS) $(MYLIBS) $(DL)
+$(LUA_T): $(LUA_O) $(LUA_BC)
+	$(LINK) -v -o lua-final.bc $(LUA_O) $(LUA_BC) 
+	$(CC) -o lua $(MYCFLAGS) lua-final.bc -L. $(LIBS) $(MYLIBS) $(DL)
 
 
 llex.o:
@@ -142,138 +140,138 @@ $(ALL_O): makefile ltests.h
 # DO NOT EDIT
 # automatically made with 'gcc -MM l*.c'
 
-liblzio.so: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
+lzio.bc: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
  lobject.h ltm.h lzio.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblapi.so: lapi.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
+lapi.bc: lapi.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lstring.h \
  ltable.h lundump.h lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblauxlib.so: lauxlib.c lprefix.h lua.h luaconf.h lauxlib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lauxlib.bc: lauxlib.c lprefix.h lua.h luaconf.h lauxlib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblbaselib.so: lbaselib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lbaselib.bc: lbaselib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblcode.so: lcode.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
+lcode.bc: lcode.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
  llimits.h lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h \
  ldo.h lgc.h lstring.h ltable.h lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblcorolib.so: lcorolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lcorolib.bc: lcorolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblctype.so: lctype.c lprefix.h lctype.h lua.h luaconf.h llimits.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lctype.bc: lctype.c lprefix.h lctype.h lua.h luaconf.h llimits.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libldblib.so: ldblib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+ldblib.bc: ldblib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libldebug.so: ldebug.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
+ldebug.bc: ldebug.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h lcode.h llex.h lopcodes.h lparser.h \
  ldebug.h ldo.h lfunc.h lstring.h lgc.h ltable.h lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 	
 
-libldump.so: ldump.c lprefix.h lua.h luaconf.h lobject.h llimits.h lstate.h \
+ldump.bc: ldump.c lprefix.h lua.h luaconf.h lobject.h llimits.h lstate.h \
  ltm.h lzio.h lmem.h lundump.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblfunc.so: lfunc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+lfunc.bc: lfunc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblgc.so: lgc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+lgc.bc: lgc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h lstring.h ltable.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblinit.so: linit.c lprefix.h lua.h luaconf.h lualib.h lauxlib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+linit.bc: linit.c lprefix.h lua.h luaconf.h lualib.h lauxlib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libliolib.so: liolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+liolib.bc: liolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libllex.so: llex.c lprefix.h lua.h luaconf.h lctype.h llimits.h ldebug.h \
+llex.bc: llex.c lprefix.h lua.h luaconf.h lctype.h llimits.h ldebug.h \
  lstate.h lobject.h ltm.h lzio.h lmem.h ldo.h lgc.h llex.h lparser.h \
  lstring.h ltable.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblmathlib.so: lmathlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lmathlib.bc: lmathlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblmem.so: lmem.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+lmem.bc: lmem.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libloadlib.so: loadlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+loadlib.bc: loadlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblobject.so: lobject.c lprefix.h lua.h luaconf.h lctype.h llimits.h \
+lobject.bc: lobject.c lprefix.h lua.h luaconf.h lctype.h llimits.h \
  ldebug.h lstate.h lobject.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h \
  lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblopcodes.so: lopcodes.c lprefix.h lopcodes.h llimits.h lua.h luaconf.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lopcodes.bc: lopcodes.c lprefix.h lopcodes.h llimits.h lua.h luaconf.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libloslib.so: loslib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+loslib.bc: loslib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 	
-liblparser.so: lparser.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
+lparser.bc: lparser.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
  llimits.h lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h \
  ldo.h lfunc.h lstring.h lgc.h ltable.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 	
-liblstate.so: lstate.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
+lstate.bc: lstate.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h llex.h \
  lstring.h ltable.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblstring.so: lstring.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
+lstring.bc: lstring.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
  lobject.h llimits.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblstrlib.so: lstrlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lstrlib.bc: lstrlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libltable.so: ltable.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+ltable.bc: ltable.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h lstring.h ltable.h lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libltablib.so: ltablib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+ltablib.bc: ltablib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libltests.so: ltests.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
+ltests.bc: ltests.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h lauxlib.h lcode.h llex.h lopcodes.h \
  lparser.h lctype.h ldebug.h ldo.h lfunc.h lopnames.h lstring.h lgc.h \
  ltable.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-libltm.so: ltm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+ltm.bc: ltm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h lstring.h ltable.h lvm.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-lua.o: lua.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+lua.bc: lua.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblundump.so: lundump.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
+lundump.bc: lundump.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
  lobject.h llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lstring.h lgc.h \
  lundump.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-liblutf8lib.so: lutf8lib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
-	$(CC) $(CFLAGS) -fpie -shared $< -I. -o $@
+lutf8lib.bc: lutf8lib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-ldo.o: ldo.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
+ldo.bc: ldo.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lopcodes.h \
  lparser.h lstring.h ltable.h lundump.h lvm.h
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
-lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
+lvm.bc: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h lopcodes.h lstring.h \
  ltable.h lvm.h ljumptab.h
-
-liblinterp.so: lvm.o ldo.o
-	$(CC) $(CFLAGS) -fpie -shared lvm.o ldo.o -I. -o $@
+	$(CC) $(CFLAGS) -flto -emit-llvm -c $< -I. -o $@
 
 # (end of Makefile)
